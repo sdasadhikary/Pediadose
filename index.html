@@ -72,11 +72,13 @@ nav button{flex:1;border:0;border-radius:0;padding:8px 2px 9px;background:none;f
 </style><style>/* v4.1: patient bar docked at bottom, above tab bar */
 #pt{position:fixed;top:auto;left:0;right:0;bottom:var(--navh,58px);border-bottom:0;border-top:1px solid var(--bd);display:flex;flex-direction:column;padding:6px 12px 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);box-shadow:0 -2px 8px rgba(15,23,42,.06)}
 #pt .prow{width:100%}#wnote{order:-1;margin:0 auto 6px;width:100%}
+#sbw{order:-2;margin:0 0 6px}#pt #sbw input{height:44px;padding-left:40px;border-radius:14px;font-weight:500}#pt #sbw:before{top:7px}#pt #sbw input::-webkit-search-cancel-button{-webkit-appearance:none;height:18px;width:18px;border-radius:9px;background:var(--mu);opacity:.5}
 body.kb nav{display:none}body.kb #pt{bottom:0;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
 .toast{bottom:calc(var(--stackh,150px) + 10px)}#instb{bottom:calc(var(--stackh,150px) + 10px)!important}
 </style>
 </head><body>
 <div id="pt">
+ <div class="search" id="sbw"><input id="q" type="search" placeholder="Search drugs, brands, indications" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>
  <div class="prow">
   <div><div class="lab">AGE</div><input id="age" type="number" inputmode="decimal" placeholder="–" step="any" min="0"></div>
   <div><div class="lab">&nbsp;</div><select id="au"><option value="y">yrs</option><option value="m">mo</option><option value="d">days</option></select></div>
@@ -1186,7 +1188,7 @@ function regCard(d,reg,w,am,isAlt){
   return{h,o,F}}
 // ---------- nav ----------
 function tab(t){T=t;['drugs','resus','inf','fluid','tools'].forEach(id=>$('#n_'+id).classList.toggle('on',id==t));curD=null;view();window.scrollTo(0,0)}
-function view(){note();({drugs:()=>curD!=null?drugView():listView(),resus:resusView,inf:infView,fluid:fluidView,tools:toolsView})[T]()}
+function view(){note();const sw=$('#sbw');if(sw)sw.style.display=T=='drugs'?'':'none';({drugs:()=>curD!=null?drugView():listView(),resus:resusView,inf:infView,fluid:fluidView,tools:toolsView})[T]()}
 // ---------- search ----------
 function lev(a,b){const m=[];for(let i=0;i<=a.length;i++)m[i]=[i];for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]==b[j-1]?0:1));return m[a.length][b.length]}
 function match(hay,qq){hay=hay.toLowerCase();if(hay.startsWith(qq))return 4;if(hay.split(/[^a-z0-9]+/).some(t=>t.startsWith(qq)))return 3;if(hay.includes(qq))return 2;if(qq.length>=4)return hay.split(/[^a-z0-9]+/).some(t=>t.length>=4&&lev(t.slice(0,qq.length+1),qq)<=1)?1:0;return 0}
@@ -1195,7 +1197,7 @@ function rowH(d,id){const g=grpOf(d),s=srcCount(d),fav=favs.includes(d.n);
   return`<div class="row2" onclick="openD('${id}')"><div class="av">${g.i}</div><div class="rmain"><div class="rt">${esc(d.n)}${fav?' <span style="color:#d4a017">★</span>':''}${s?'<span class="dot" title="source-matched"></span>':''}</div><div class="rs">${esc(d.c)}${d.al?' · '+esc(d.al):''}</div></div><div class="chev">›</div></div>`}
 function listView(){
   const A=ALL(),ids=A.map((d,i)=>[d,idOf(i)]);const ql=q.trim().toLowerCase();
-  let h=`<div class="search"><input id="q" placeholder="Search ${A.length} drugs, brands, indications" value="${esc(q)}" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>`;
+  let h='';const qb=$('#q');if(qb){qb.placeholder='Search '+A.length+' drugs, brands, indications';if(qb.value!==q)qb.value=q}
   if(ql){
     let r=ids.map(x=>[x,Math.max(match(x[0].n+' '+(x[0].al||''),ql)*2,match(x[0].ind.map(i=>i.n).join(' | ')+' '+x[0].c,ql))]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]||a[0][0].n.localeCompare(b[0][0].n)).map(x=>x[0]);
     h+=`<div class="sec">${r.length} curated</div>`+(r.length?`<div class="list">${r.slice(0,60).map(([d,id])=>rowH(d,id)).join('')}</div>`:'<div class="card empty">No curated match</div>');
@@ -1217,7 +1219,7 @@ function listView(){
     h+=`<div class="sec">Browse by system</div><div class="grid">`+GROUPS.map(g=>{const n=A.filter(d=>grpOf(d).k==g.k).length;return n?`<button class="tile" onclick="grp='${g.k}';sub='All';listView();window.scrollTo(0,0)"><span class="ti">${g.i}</span><span class="tn">${g.n}</span><span class="tc">${n} drug${n>1?'s':''}</span></button>`:''}).join('')+`</div>`;
     h+=`<div class="mu sm" style="margin:14px 4px">${CUR.length} curated drugs · ${CUR.reduce((a,d)=>a+d.ind.length,0)} regimens · ${CUR.reduce((a,d)=>a+srcCount(d),0)} source-matched (<span class="dot" style="margin:0"></span>) · ${LAB.length} US-label references · ${BUILD}</div>`;
   }
-  $('#main').innerHTML=h;const qi=$('#q');qi.addEventListener('input',e=>{q=e.target.value;const p=e.target.selectionStart;listView();const n=$('#q');n.focus();try{n.setSelectionRange(p,p)}catch(_){}})}
+  $('#main').innerHTML=h}
 function openD(id){curD=id;lvl='mid';const d=getD(id),w=W(),am=ageM();curI=Math.max(0,d.ind.findIndex(x=>appl(x,am,w&&w.w).ok!==false));
   rec=[d.n,...rec.filter(n=>n!=d.n)].slice(0,12);store.s('pd3rec',rec);drugView();window.scrollTo(0,0)}
 function openL(n){const d=LAB.find(x=>x.n==n);$('#main').innerHTML=`<div class="top"><button class="back" onclick="listView()">‹ Back</button></div><div class="card"><div class="h1">${esc(d.n)}</div><div class="mu">${esc(d.c)}</div><div class="warn">No curated regimen. Text below is from a US label (“${esc(d.b)}”, set ${esc(d.s)}, ${esc(d.d)}). Not a dose recommendation; may not match Indian practice.</div>${d.p.map(p=>`<div class="src">${esc(p)}</div>`).join('')}</div>`}
@@ -1442,6 +1444,7 @@ $('#age').value=P.age||'';$('#au').value=P.au||'y';$('#wt').value=P.wt||'';
 document.querySelectorAll('#sex button').forEach(b=>{b.classList.toggle('on',b.dataset.s==sex);b.onclick=()=>{sex=b.dataset.s;document.querySelectorAll('#sex button').forEach(x=>x.classList.toggle('on',x==b));saveP();view()}});
 ['age','au','wt'].forEach(id=>$('#'+id).addEventListener('input',()=>{saveP();if((T=='drugs'&&curD==null)||T=='tools')note();else view()}));
 tab('drugs');
+$('#q').addEventListener('input',e=>{q=e.target.value;if(T!='drugs')return;curD=null;if(q.trim())window.scrollTo(0,0);listView()});
 // ---- v4.1 bottom patient bar layout ----
 (function(){const pt=document.getElementById('pt'),nv=document.querySelector('nav'),R=document.documentElement;
 function lay(){const kb=document.body.classList.contains('kb'),nh=kb?0:nv.offsetHeight,ph=pt.offsetHeight;R.style.setProperty('--navh',nh+'px');R.style.setProperty('--stackh',(nh+ph)+'px');document.body.style.paddingBottom=(nh+ph+12)+'px'}
