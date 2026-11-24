@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#0f766e">
 <title>Paeds Dose</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -69,7 +69,13 @@ nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);b
 nav button{flex:1;border:0;border-radius:0;padding:8px 2px 9px;background:none;font-size:11px;font-weight:600;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px}nav button i{font-style:normal;font-size:20px;line-height:1.1;filter:grayscale(.6);opacity:.75}nav .on{color:var(--ac)}nav .on i{filter:none;opacity:1}
 .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:13px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:.95}
 .empty{padding:20px;text-align:center;color:var(--mu)}
-</style></head><body>
+</style><style>/* v4.1: patient bar docked at bottom, above tab bar */
+#pt{position:fixed;top:auto;left:0;right:0;bottom:var(--navh,58px);border-bottom:0;border-top:1px solid var(--bd);display:flex;flex-direction:column;padding:6px 12px 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);box-shadow:0 -2px 8px rgba(15,23,42,.06)}
+#pt .prow{width:100%}#wnote{order:-1;margin:0 auto 6px;width:100%}
+body.kb nav{display:none}body.kb #pt{bottom:0;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.toast{bottom:calc(var(--stackh,150px) + 10px)}#instb{bottom:calc(var(--stackh,150px) + 10px)!important}
+</style>
+</head><body>
 <div id="pt">
  <div class="prow">
   <div><div class="lab">AGE</div><input id="age" type="number" inputmode="decimal" placeholder="–" step="any" min="0"></div>
@@ -1436,6 +1442,12 @@ $('#age').value=P.age||'';$('#au').value=P.au||'y';$('#wt').value=P.wt||'';
 document.querySelectorAll('#sex button').forEach(b=>{b.classList.toggle('on',b.dataset.s==sex);b.onclick=()=>{sex=b.dataset.s;document.querySelectorAll('#sex button').forEach(x=>x.classList.toggle('on',x==b));saveP();view()}});
 ['age','au','wt'].forEach(id=>$('#'+id).addEventListener('input',()=>{saveP();if((T=='drugs'&&curD==null)||T=='tools')note();else view()}));
 tab('drugs');
+// ---- v4.1 bottom patient bar layout ----
+(function(){const pt=document.getElementById('pt'),nv=document.querySelector('nav'),R=document.documentElement;
+function lay(){const kb=document.body.classList.contains('kb'),nh=kb?0:nv.offsetHeight,ph=pt.offsetHeight;R.style.setProperty('--navh',nh+'px');R.style.setProperty('--stackh',(nh+ph)+'px');document.body.style.paddingBottom=(nh+ph+12)+'px'}
+if(window.ResizeObserver){const ro=new ResizeObserver(lay);ro.observe(pt);ro.observe(nv)}window.addEventListener('resize',lay);
+pt.addEventListener('focusin',()=>{document.body.classList.add('kb');lay()});pt.addEventListener('focusout',()=>setTimeout(()=>{if(!pt.contains(document.activeElement)){document.body.classList.remove('kb');lay()}},50));
+lay()})();
 // ---- PWA hooks ----
 (function(){var dp=null,bt=document.createElement('button');bt.id='instb';bt.textContent='\u2B07 Install app';document.body.appendChild(bt);
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;bt.style.display='block'});
