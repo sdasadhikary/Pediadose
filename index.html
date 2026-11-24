@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Paeds Dose</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#f2f4f7;--card:#fff;--tx:#0f172a;--mu:#64748b;--bd:#e3e8ef;--ac:#0f766e;--acb:#e6f6f3;--wn:#b42318;--wb:#fef1f0;--am:#fff6e0;--amt:#8a5a00}
+@media(prefers-color-scheme:dark){:root{--bg:#0b0f14;--card:#151b23;--tx:#e6edf5;--mu:#93a1b3;--bd:#253040;--ac:#2dd4bf;--acb:#0f2e2a;--wn:#ff8a80;--wb:#3a1c1a;--am:#33290f;--amt:#f2c75c}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,sans-serif;padding-bottom:30px}
+input,select,button{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;min-width:0}input,select{width:100%}
+#pt{position:sticky;top:0;z-index:9;background:var(--bg);padding:8px 12px;border-bottom:1px solid var(--bd)}
+.prow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;max-width:720px;margin:0 auto}.lab{font-size:11px;font-weight:600;color:var(--mu)}
+#wnote{font-size:12.5px;color:var(--mu);max-width:720px;margin:6px auto 0}
+main{padding:8px 12px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin:10px 0}
+.row2{display:block;width:100%;text-align:left;padding:12px 14px;border:0;border-top:1px solid var(--bd);border-radius:0}.row2:first-child{border-top:0}
+.rt{font-weight:650}.rs{font-size:12.5px;color:var(--mu)}.list{border:1px solid var(--bd);border-radius:16px;overflow:hidden;background:var(--card);margin:8px 0}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mu)}.tag.ok{background:var(--acb);color:var(--ac)}.tag.wn{background:var(--wb);color:var(--wn)}.tag.am{background:var(--am);color:var(--amt)}
+.big{font-size:30px;font-weight:800}.mu{color:var(--mu);font-size:13px}.warn{background:var(--wb);color:var(--wn);border-radius:12px;padding:9px 12px;margin:8px 0;font-weight:600;font-size:13.5px}
+.note{background:var(--am);color:var(--amt);border-radius:12px;padding:9px 12px;margin:8px 0;font-size:13px}
+.ind{display:block;width:100%;text-align:left;margin:6px 0}.ind.sel{border-color:var(--ac);background:var(--acb);font-weight:650}
+.frm{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--bd)}
+.back{background:none;border:0;color:var(--ac);font-weight:650}.src{font-size:12.5px;color:var(--mu);border-left:3px solid var(--bd);padding:2px 10px;margin:6px 0}
+label.ck{display:flex;gap:10px;align-items:center;margin-top:12px;font-size:13.5px}label.ck input{width:20px;height:20px}
+#instb{position:fixed;right:12px;bottom:14px;z-index:20;background:var(--ac);color:#fff;border:0;border-radius:99px;padding:12px 16px;font-weight:650;display:none}
+</style></head><body>
+<div id="pt"><div class="prow">
+<div><div class="lab">AGE</div><input id="age" type="number" inputmode="decimal" step="any" min="0" placeholder="–"></div>
+<div><div class="lab">UNIT</div><select id="au"><option value="y">yrs</option><option value="m">mo</option><option value="d">days</option></select></div>
+<div><div class="lab">WEIGHT kg</div><input id="wt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="auto"></div>
+</div><div id="wnote"></div></div>
+<main id="main"></main>
+<button id="instb" onclick="doInstall()">⬇ Install app</button>
+<script>
+const REFS={
+ PB13:"WHO Pocket Book of Hospital Care for Children, 2nd ed (2013).",
+ PD24:"WHO guideline on pneumonia and diarrhoea in children up to 10 years (2024).",
+ IAP22:"IAP Standard Treatment Guidelines 2022, Enteric fever (secondary report).",
+ FDA:"US FDA prescribing label (pediatric dosing). US labelling; may differ from Indian practice.",
+ R:"Assistant recall of BNFc/IAP/AAP-type regimens. NOT checked against a source."
+};
+// SAMPLE DATASET: only the regimens present in the supplied (truncated) paste. Replace with full v4 data.
+const CUR=[
+{n:"Paracetamol",al:"acetaminophen crocin calpol dolo",c:"Analgesic/antipyretic",syr:[120,125,250],tab:[500,650],inj:[{v:10,l:"IV 10 mg/mL"},{v:100,l:"Oral drops 100 mg/mL"}],cx:"Hepatotoxic in overdose. Max 60 mg/kg/day here. Neonates: use neonatal dosing.",ind:[
+ {n:"Fever / mild–moderate pain (oral/PR)",lo:10,hi:15,per:"dose",f:4,mx:1000,mxdk:60,mxd:4000,dur:"SOS, q4–6h; ≤3–5 days",rt:"PO/PR",ageMin:1,ref:"PB13",ok:1,chk:"PB13: 10–15 mg/kg up to 6 times a day. Matches; app also caps daily total at 60 mg/kg."},
+ {n:"IV, ≥10 kg",lo:15,hi:15,per:"dose",f:4,mx:1000,mxdk:60,mxd:4000,dur:"q6h SOS",rt:"IV over 15 min",ageMin:1,ref:"R"},
+ {n:"IV, <10 kg (infant >1 mo)",lo:7.5,hi:10,per:"dose",f:4,mxdk:30,dur:"q6h SOS",rt:"IV over 15 min",ageMin:1,ref:"R",chk:"Recall: 7.5 mg/kg in many US labels; 10 mg/kg in BNFc. Check."}]},
+{n:"Ibuprofen",al:"brufen ibugesic",c:"Analgesic/antipyretic",syr:[100],tab:[200,400],cx:"Avoid <3 mo, dehydration, AKI, dengue/thrombocytopenia, active GI bleed, varicella. Give with food.",ind:[
+ {n:"Fever / pain",lo:5,hi:10,per:"dose",f:3,mx:400,mxdk:40,mxd:1200,dur:"q6–8h SOS; ≤3 days",rt:"PO",ageMin:3,ref:"PB13",ok:1,chk:"PB13: 5–10 mg/kg q6–8h, max 40 mg/kg/day. Matches."},
+ {n:"Juvenile arthritis (anti-inflammatory)",lo:30,hi:40,per:"day",f:3,mxd:2400,dur:"Specialist-directed",rt:"PO",ageMin:6,ref:"R"}]},
+{n:"Amoxicillin",al:"mox novamox amoxil",c:"Antibiotic",syr:[125,250],tab:[125,250,500],cx:"Rash common in EBV. Adjust interval in severe renal impairment.",ind:[
+ {n:"Pneumonia (WHO: fast breathing ± chest indrawing)",lo:80,hi:90,per:"day",f:2,mxd:4000,dur:"5 days (3 days if fast breathing only + low HIV prevalence)",rt:"PO",ageMin:2,ref:"PD24,PB13",ok:1,chk:"WHO 2024: at least 40 mg/kg per dose twice daily (80 mg/kg/day).",alt:{label:"Lower-dose (40–50 mg/kg/day): older/BNFc-type, not WHO",lo:40,hi:50,per:"day",f:2,mxd:3000}},
+ {n:"General mild infection (WHO standard dose)",lo:25,hi:25,per:"dose",f:2,mxd:3000,dur:"5–7 days",rt:"PO",ageMin:1,ref:"PB13",ok:1,chk:"PB13: 25 mg/kg twice a day."},
+ {n:"Acute otitis media",lo:80,hi:90,per:"day",f:2,mxd:4000,dur:"5–10 days (10 if <2 y/severe)",rt:"PO",ageMin:1,ref:"R",alt:{label:"Standard (non-high-dose)",lo:40,hi:50,per:"day",f:2,mxd:3000}},
+ {n:"Strep pharyngitis / tonsillitis",lo:50,hi:50,per:"day",f:1,mx:1000,dur:"10 days",rt:"PO",ageMin:1,ref:"R",alt:{label:"25 mg/kg q12h (max 500 mg/dose)",lo:25,hi:25,per:"dose",f:2,mx:500}},
+ {n:"Endocarditis prophylaxis (dental), single dose",lo:50,hi:50,per:"dose",f:1,mx:2000,dur:"30–60 min before",rt:"PO",ageMin:1,ref:"R"}]},
+{n:"Amoxicillin + Clavulanate",al:"co-amoxiclav augmentin clavam moxclav",c:"Antibiotic",syr:[125,200,400],tab:[250,500,875],inj:[{v:100,l:"IV 1.2 g vial in 12 mL ≈ 100 mg/mL"}],cx:"Dose = AMOXICILLIN component. Check your brand's ratio. Diarrhoea; cholestatic jaundice; renal adjustment.",ind:[
+ {n:"CAP / AOM / sinusitis / skin (oral)",lo:25,hi:45,per:"day",f:2,mxd:1750,dur:"5–7 days",rt:"PO",ageMin:3,ref:"R",alt:{label:"High-dose (14:1 ES formulation)",lo:80,hi:90,per:"day",f:2,mxd:4000}},
+ {n:"Severe infection (IV)",lo:30,hi:30,per:"dose",f:3,mx:1000,dur:"Per focus; switch to oral",rt:"IV over 3–4 min",ageMin:3,ref:"R"}]},
+{n:"Azithromycin",al:"azee zithromax azithral",c:"Antibiotic",syr:[100,200],tab:[100,250,500],cx:"QT prolongation. Separate from antacids. Long half-life.",ind:[
+ {n:"Enteric fever (typhoid)",lo:20,hi:20,per:"day",f:1,mxd:1000,dur:"7 days",rt:"PO",ageMin:6,ref:"IAP22",ok:1,chk:"IAP STG 2022: 20 mg/kg/day, max 1 g/day."},
+ {n:"CAP (5-day regimen)",lo:10,hi:10,per:"dose",f:1,mx:500,dur:"Day 1 10 mg/kg, then 5 mg/kg/day on days 2–5",rt:"PO",ageMin:6,ref:"FDA",ok:1,chk:"FDA label: 10 mg/kg day 1, then 5 mg/kg days 2–5.",alt:{label:"Days 2–5 dose (5 mg/kg)",lo:5,hi:5,per:"dose",f:1,mx:250}},
+ {n:"AOM / sinusitis (3-day regimen)",lo:10,hi:10,per:"dose",f:1,mx:500,dur:"3 days",rt:"PO",ageMin:6,ref:"FDA",ok:1,chk:"FDA label: 10 mg/kg once daily for 3 days."},
+ {n:"Strep pharyngitis (penicillin-allergic)",lo:12,hi:12,per:"dose",f:1,mx:500,dur:"5 days",rt:"PO",ageMin:24,ref:"FDA",ok:1,chk:"FDA label: 12 mg/kg once daily × 5 days, age ≥2 y."},
+ {n:"Pertussis",lo:10,hi:10,per:"dose",f:1,mx:500,dur:"5 days (≥6 mo: 10 mg/kg d1 then 5 mg/kg d2–5)",rt:"PO",ageMin:0,ref:"R"},
+ {n:"Cholera (single dose)",lo:20,hi:20,per:"dose",f:1,mx:1000,dur:"Single dose",rt:"PO",ageMin:6,ref:"R"}]},
+{n:"Cefixime",al:"taxim-o zifi cefix",c:"Antibiotic",syr:[50,100],tab:[100,200,400],cx:"Reduce if CrCl <60. Label: ≥6 months.",ind:[
+ {n:"UTI / AOM / pharyngitis",lo:8,hi:10,per:"day",f:2,mxd:400,dur:"5–7 days (UTI 7–10)",rt:"PO",ageMin:6,ref:"FDA",chk:"FDA label: 8 mg/kg/day. App's 'High' (10) is above the label dose."},
+ {n:"Enteric fever (typhoid)",lo:20,hi:20,per:"day",f:2,mxd:1200,dur:"10–14 days",rt:"PO",ageMin:6,ref:"IAP22",ok:1,chk:"IAP STG 2022: 20 mg/kg/day, max 1200 mg/day."}]},
+{n:"Cefpodoxime",al:"cepodem monocef-o",c:"Antibiotic",syr:[50,100],tab:[100,200],cx:"CrCl <30: give q24h. Separate from antacids/H2 blockers.",ind:[
+ {n:"AOM / sinusitis",lo:5,hi:5,per:"dose",f:2,mx:200,dur:"AOM 5 d; sinusitis 10 d",rt:"PO",ageMin:2,ref:"FDA",ok:1,chk:"FDA label: 5 mg/kg q12h (max 200 mg/dose)."},
+ {n:"Pharyngitis / tonsillitis",lo:5,hi:5,per:"dose",f:2,mx:100,dur:"5–10 days",rt:"PO",ageMin:2,ref:"FDA",ok:1,chk:"FDA label: 5 mg/kg q12h, max 100 mg/dose."}]},
+{n:"Cephalexin",al:"cefalexin sporidex",c:"Antibiotic",syr:[125,250],tab:[250,500],cx:"Renal adjustment.",ind:[
+ {n:"Skin & soft tissue / UTI / pharyngitis",lo:25,hi:50,per:"day",f:4,mxd:4000,dur:"5–10 days",rt:"PO",ageMin:1,ref:"PB13",ok:1,chk:"PB13: 12.5 mg/kg QID (= 50 mg/kg/day), the 'High' end.",alt:{label:"Severe (75–100 mg/kg/day)",lo:75,hi:100,per:"day",f:4,mxd:4000}}]},
+{n:"Cefuroxime axetil",al:"zinnat ceftum",c:"Antibiotic",syr:[125],tab:[125,250,500],cx:"Take with food. Renal adjustment.",ind:[
+ {n:"AOM / sinusitis / pneumonia / UTI",lo:20,hi:30,per:"day",f:2,mx:500,dur:"5–10 days",rt:"PO",ageMin:3,ref:"R"}]},
+{n:"Ceftriaxone",al:"monocef cefaxone rocephin",c:"Antibiotic",inj:[{v:100,l:"IV 100 mg/mL (1 g in 10 mL)"},{v:250,l:"IM 250 mg/mL (1 g in ~4 mL lignocaine)"}],cx:"No IV calcium co-infusion. Avoid in jaundiced/premature neonates. IM with lignocaine diluent.",ind:[
+ {n:"Sepsis / severe pneumonia / pyelonephritis",lo:50,hi:80,per:"day",f:1,mxd:2000,dur:"5–7 days",rt:"IV/IM",ageMin:1,ref:"PB13",chk:"PB13: 80 mg/kg/day once daily (the 'High' end).",alt:{label:"Severe (80–100 mg/kg/day)",lo:80,hi:100,per:"day",f:2,mxd:4000}},
+ {n:"Meningitis",lo:100,hi:100,per:"day",f:2,mxd:4000,dur:"7–14 days (organism-based)",rt:"IV",ageMin:1,ref:"PB13",ok:1,chk:"PB13: 50 mg/kg q12h (max 4 g) or 100 mg/kg once daily."},
+ {n:"Enteric fever (severe / inpatient)",lo:100,hi:100,per:"day",f:2,mxd:4000,dur:"10–14 days",rt:"IV",ageMin:1,ref:"IAP22",ok:1,chk:"IAP STG 2022: 100 mg/kg/day, max 4 g.",alt:{label:"50–75 mg/kg/day (IAP 2006)",lo:50,hi:75,per:"day",f:1,mxd:4000}}]}
+];
+
+const $=id=>document.getElementById(id), main=$('main');
+const LS={g(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},s(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let ver=LS.g('pd3ver',{}), sel=null, ix=0, lvl='lo';
+const ageM=()=>{const a=parseFloat($('age').value);if(!(a>=0))return null;const u=$('au').value;return u==='y'?a*12:u==='m'?a:a/30.4};
+function est(){const m=ageM();if(m==null)return null;const y=m/12;
+ if(m<1)return{kg:3.5,w:'neonate, very rough'};
+ if(m<12)return{kg:(m+9)/2,w:'infant (APLS formula)'};
+ if(y<=5)return{kg:2*y+8,w:'APLS 2y+8'};
+ if(y<=10)return{kg:3*y+7,w:'APLS 3y+7'};
+ return{kg:Math.min(45,2*y+8),w:'>10 y: rough, capped 45 — WEAK, measure'}}
+function kg(){const w=parseFloat($('wt').value);if(w>0)return{kg:w,w:'entered'};return est()}
+function upd(){const k=kg();$('wnote').innerHTML=k?`Using <b>${k.kg.toFixed(1)} kg</b> (${k.w})`+(k.w==='entered'?'':' — <b>estimated, weigh the child</b>'):'Enter age and/or weight';render()}
+['age','au','wt'].forEach(i=>$(i).addEventListener('input',upd));
+const r1=x=>x>=100?Math.round(x):Math.round(x*10)/10;
+function calc(I,w,alt){const R=alt||I,v=lvl==='hi'?R.hi:R.lo,f=R.f||1;
+ let day,dose;
+ if(R.per==='day'){day=v*w;if(R.mxd)day=Math.min(day,R.mxd);dose=day/f}else{dose=v*w;if(R.mx)dose=Math.min(dose,R.mx);day=dose*f}
+ if(R.mx)dose=Math.min(dose,R.mx);
+ const lim=I.mxdk?I.mxdk*w:null;if(lim&&dose*f>lim){dose=lim/f}
+ if(I.mxd&&dose*f>I.mxd)dose=I.mxd/f;
+ return{dose,f,day:dose*f}}
+function forms(D,mg){let h='';
+ (D.syr||[]).forEach(s=>{h+=`<div class="frm"><span>Syrup ${s} mg/5 mL</span><b>${r1(mg/s*5)} mL</b></div>`});
+ (D.tab||[]).forEach(t=>{const n=mg/t;h+=`<div class="frm"><span>Tablet ${t} mg</span><b>${n<0.4?'< ¼ tab':Math.round(n*4)/4+' tab'}</b></div>`});
+ (D.inj||[]).forEach(j=>{h+=`<div class="frm"><span>${j.l}</span><b>${r1(mg/j.v)} mL</b></div>`});return h}
+function list(q){q=(q||'').toLowerCase();const r=CUR.filter(d=>!q||(d.n+' '+d.al+' '+d.c).toLowerCase().includes(q)).sort((a,b)=>a.n.localeCompare(b.n));
+ main.innerHTML=`<input id="q" placeholder="Search drug, brand, class" value="${q}" autocomplete="off"><div class="note">Sample dataset: ${CUR.length} drugs. All regimens UNVERIFIED until you tick “I verified”.</div><div class="list">${r.map(d=>`<button class="row2" data-n="${d.n}"><div class="rt">${d.n}</div><div class="rs">${d.c} · ${d.ind.length} indication${d.ind.length>1?'s':''}</div></button>`).join('')||'<div class="mu" style="padding:16px">No match</div>'}</div>`;
+ const qi=$('q');qi.addEventListener('input',e=>{list(e.target.value);$('q').focus();$('q').setSelectionRange(1e3,1e3)});
+ main.querySelectorAll('.row2').forEach(b=>b.onclick=()=>{sel=CUR.find(d=>d.n===b.dataset.n);ix=0;render()})}
+function drug(){const D=sel,I=D.ind[ix],k=kg(),key=D.n+'|'+I.n,v=!!ver[key];
+ let h=`<button class="back" onclick="sel=null;render()">‹ Back</button><div class="card"><div style="font-size:22px;font-weight:750">${D.n}</div><div class="mu">${D.c}</div><div class="warn">${D.cx}</div></div>`;
+ h+=D.ind.map((x,i)=>`<button class="ind ${i===ix?'sel':''}" onclick="ix=${i};render()">${x.n}</button>`).join('');
+ h+=`<div class="card"><span class="tag ${v?'ok':'wn'}">${v?'Verified by you':'UNVERIFIED'}</span> <span class="tag ${I.ok?'ok':'am'}">${I.ok?'Source-matched':'Recall / check'}</span>
+ <div class="mu" style="margin-top:6px">${I.rt} · ${I.dur||''}</div>`;
+ const m=ageM();
+ if(m!=null&&I.ageMin!=null&&m<I.ageMin)h+=`<div class="warn">Below listed minimum age (${I.ageMin} mo) — do not use this regimen.</div>`;
+ if(m!=null&&I.ageMax!=null&&m>I.ageMax)h+=`<div class="warn">Above listed maximum age (${I.ageMax} mo).</div>`;
+ if(!k)h+=`<div class="note">Enter age or weight for a dose.</div>`;
+ else{const c=calc(I,k.kg);
+  h+=`<div style="display:flex;gap:6px;margin:10px 0">${['lo','hi'].map(l=>`<button class="ind ${lvl===l?'sel':''}" style="margin:0;text-align:center" onclick="lvl='${l}';render()">${l==='lo'?'Low':'High'} (${l==='lo'?I.lo:I.hi} mg/kg${I.per==='day'?'/day':''})</button>`).join('')}</div>
+  <div class="big">${r1(c.dose)} <small>mg ${c.f>1?'× '+c.f+'/day':'once'}</small></div><div class="mu">Daily ${r1(c.day)} mg${I.mx&&c.dose>=I.mx?' · capped at max/dose':''}${I.mxd&&c.day>=I.mxd?' · capped at max/day':''} · weight ${k.kg.toFixed(1)} kg</div>${forms(D,c.dose)}`;
+  if(I.alt){const a=calc(I,k.kg,I.alt);h+=`<div class="note"><b>Alternative:</b> ${I.alt.label}<br>${r1(a.dose)} mg × ${a.f}/day (${lvl==='hi'?I.alt.hi:I.alt.lo} mg/kg${I.alt.per==='day'?'/day':''})</div>`}}
+ h+=`<div class="src"><b>Source:</b> ${(I.ref||'R').split(',').map(r=>REFS[r]||r).join('<br>')}${I.chk?'<br><i>'+I.chk+'</i>':''}</div>
+ <label class="ck"><input type="checkbox" ${v?'checked':''} onchange="ver['${key.replace(/'/g,"\\'")}']=this.checked;LS.s('pd3ver',ver);render()"> I verified this regimen against my reference</label></div>`;
+ main.innerHTML=h}
+function render(){sel?drug():list()}
+upd();
+
+// ---- PWA hooks ----
+let dp=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('instb').style.display='block'});
+window.addEventListener('appinstalled',()=>{$('instb').style.display='none';dp=null});
+function doInstall(){if(!dp)return;dp.prompt();dp.userChoice.finally(()=>{dp=null;$('instb').style.display='none'})}
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script></body></html>
