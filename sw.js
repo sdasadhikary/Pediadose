@@ -1,4 +1,4 @@
-const CACHE = 'paeds-dose-v4-5'; // bump on every release
+const CACHE = 'paeds-dose-v4-6'; // bump on every release
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => {
   // cache:'reload' bypasses the browser/CDN HTTP cache so a new release never precaches a stale index.html
